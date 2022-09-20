@@ -1,5 +1,4 @@
 using PSRDADA, Logging
-include("../src/RFIKiller.jl")
 
 const IN_KEY = 0xb0ba
 const OUT_KEY = 0xcafe
@@ -7,7 +6,7 @@ const CHANNELS = 2048
 const SAMPLES = 16384
 const DTYPE = UInt16
 
-function main()
+function julia_main()::Cint
     in_client = client_connect(IN_KEY)
     out_client = client_connect(OUT_KEY)
     @info "Connected to DADA buffers"
@@ -43,6 +42,5 @@ function main()
     @info "Shutting down"
     cleanup(in_client)
     cleanup(out_client)
+    return 0 # if things finished successfully
 end
-
-main()
