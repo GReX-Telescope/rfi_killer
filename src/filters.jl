@@ -71,6 +71,6 @@ function kill_rfi!(spectra::AbstractMatrix, mask::AbstractMatrix{Bool})
     detrend!(spectra, mask, 1, 4)
     detrend!(spectra, mask, 2, 6)
     # Mask to mean
-    spectra[.!mask] .= mean(spectra[mask])s
+    spectra[.!mask] .= mean(spectra[mask])
     nothing
 end
