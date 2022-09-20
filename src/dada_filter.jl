@@ -1,17 +1,47 @@
-using PSRDADA, Logging
+using PSRDADA, Logging, ArgParse
 
-const IN_KEY = 0xb0ba
-const OUT_KEY = 0xcafe
-const CHANNELS = 2048
-const SAMPLES = 131072
-const DTYPE = UInt16
+const DTYPE = Float32
+
+function parse_commandline()
+    s = ArgParseSettings()
+
+    @add_arg_table! s begin
+        "in_key"
+        help = "Input PSRDADA key"
+        required = true
+        arg_type = Int
+        "out_key"
+        help = "Input PSRDADA key"
+        required = true
+        arg_type = Int
+        "--channels"
+        help = "Number of frequency channels"
+        arg_type = Int
+        default = 2048
+        "--samples"
+        help = "Number of time samples"
+        arg_type = Int
+        default = 65536
+    end
+
+    return parse_args(s)
+end
 
 function julia_main()::Cint
-    in_client = client_connect(IN_KEY)
-    out_client = client_connect(OUT_KEY)
+
+    parsed_args = parse_commandline()
+
+    in_key = parsed_args["in_key"]
+    out_key = parsed_args["out_key"]
+    channels = parsed_args["channels"]
+    samples = parsed_args["samples"]
+
+    in_client = client_connect(in_key)
+    out_client = client_connect(out_key)
     @info "Connected to DADA buffers"
 
     # Only one header to relay
+    @info "Waiting for incoming header to relay"
     with_read_iter(in_client; type=:header) do rb
         with_write_iter(out_client; type=:header) do wb
             next(wb) .= next(rb)
@@ -23,7 +53,7 @@ function julia_main()::Cint
     n = 0
 
     # Construct mask
-    mask = ones(Bool, CHANNELS, SAMPLES)
+    mask = ones(Bool, channels, samples)
 
     with_read_iter(in_client; type=:data) do rb
         with_write_iter(out_client; type=:data) do wb
@@ -32,10 +62,9 @@ function julia_main()::Cint
                 if isnothing(raw_spectra)
                     break
                 end
-                spectra = reshape(reinterpret(DTYPE, raw_spectra), (CHANNELS, SAMPLES))
-                spectra_floats = Float32.(spectra)
-                RFIKiller.kill_rfi!(spectra_floats, mask)
-                next(wb) .= reinterpret(UInt8, vec(spectra_floats))
+                spectra = reshape(reinterpret(DTYPE, raw_spectra), (channels, samples))
+                RFIKiller.kill_rfi!(spectra, mask)
+                next(wb) .= reinterpret(UInt8, vec(spectra))
                 n += 1
                 @info "Processed $n chunks"
             end
