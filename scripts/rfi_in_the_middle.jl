@@ -14,7 +14,7 @@ function main()
 
     # Only one header to relay
     with_read_iter(in_client; type=:header) do rb
-        with_write_iter(out_cliennt; type=:header) do wb
+        with_write_iter(out_client; type=:header) do wb
             next(wb) .= next(rb)
         end
     end
