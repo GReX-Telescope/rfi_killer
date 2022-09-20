@@ -1,5 +1,19 @@
 using LoopVectorization, StatsBase
 
+# Array Abstraction versions
+
+function masked_mean(tmp::AbstractMatrix{T}, x::AbstractMatrix{T}, mask, axis) where {T<:Number}
+    @. tmp = x * mask
+    mean(tmp, dims=axis)
+end
+
+function masked_var(tmp::AbstractMatrix{T}, x::AbstractMatrix{T}, mask, axis) where {T<:Number}
+    @. tmp = x * mask
+    var(tmp, dims=axis)
+end
+
+# Looping versions
+
 function masked_mean(x::AbstractMatrix{T}, mask, axis) where {T<:Number}
     @assert size(x) == size(mask) "The mask and input must have the same size"
     @assert axis == 1 || axis == 2 "Axis must be either 1 or 2"
