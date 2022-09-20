@@ -4,6 +4,6 @@ include("filters.jl")
 include("masked_stats.jl")
 include("dada_filter.jl")
 
-export kill_rfi!
+export julia_main
 
 end
