@@ -1,4 +1,5 @@
-using RFIKiller, BenchmarkTools, PSRDADA
+using PSRDADA
+include("../src/RFIKiller.jl")
 
 const IN_KEY = 0xb0ba
 const OUT_KEY = 0xcafe
