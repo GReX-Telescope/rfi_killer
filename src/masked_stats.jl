@@ -70,5 +70,5 @@ function masked_var(x::AbstractMatrix{T}, mask, axis) where {T<:Number}
         end
     end
 
-    @turbo σ² .= σ² ./ (len - 1)
+    @turbo σ² .= σ² ./ (len .- 1)
 end

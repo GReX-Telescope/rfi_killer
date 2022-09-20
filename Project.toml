@@ -10,3 +10,10 @@ LoopVectorization = "bdcacae8-1622-11e9-2a5c-532679323890"
 PSRDADA = "f629cb85-fa15-4488-81b6-60b98a2b66fb"
 Polynomials = "f27b6e38-b328-58d1-80ce-0feddd5e7a45"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]

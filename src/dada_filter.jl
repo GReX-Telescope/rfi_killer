@@ -22,6 +22,9 @@ function julia_main()::Cint
 
     n = 0
 
+    # Construct mask
+    mask = ones(Bool, CHANNELS, SAMPLES)
+
     with_read_iter(in_client; type=:data) do rb
         with_write_iter(out_client; type=:data) do wb
             while true
@@ -31,7 +34,7 @@ function julia_main()::Cint
                 end
                 spectra = reshape(reinterpret(DTYPE, raw_spectra), (CHANNELS, SAMPLES))
                 spectra_floats = Float32.(spectra)
-                RFIKiller.kill_rfi!(spectra_floats)
+                RFIKiller.kill_rfi!(mask, spectra_floats)
                 next(wb) .= reinterpret(UInt8, vec(spectra_floats))
                 n += 1
                 @info "Processed $n chunks"

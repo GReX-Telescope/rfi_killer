@@ -60,14 +60,17 @@ function zero_dm_filter!(spectra, mask, σ_limit)
     @. mask[ms, :] = false
 end
 
-function kill_rfi!(spectra::AbstractMatrix)
-    mask = ones(Bool, size(spectra))
+function kill_rfi!(spectra::AbstractMatrix, mask::AbstractMatrix{Bool})
+    # Reset mask
+    mask .= ones(Bool, size(spectra))
+    # Apply filters
     bandpass!(spectra, mask, 0.001)
     sigmacut!(spectra, mask, 1, 3)
     sigmacut!(spectra, mask, 2, 6)
     zero_dm_filter!(spectra, mask, 7)
     detrend!(spectra, mask, 1, 4)
     detrend!(spectra, mask, 2, 6)
-    spectra[.!mask] .= mean(spectra[mask])
-    mask
+    # Mask to mean
+    spectra[.!mask] .= mean(spectra[mask])s
+    nothing
 end
