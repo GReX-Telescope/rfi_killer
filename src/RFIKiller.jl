@@ -3,7 +3,7 @@ module RFIKiller
 using LoopVectorization, StatsBase
 import Polynomials
 
-export sigmacut!, kill_rfi!, masked_mean, masked_var, bandpass!, detrend!, zero_dm_filter!
+export kill_rfi!
 
 # Data is (channels,samples) as consecutive frequencies as consecutive in memorys
 

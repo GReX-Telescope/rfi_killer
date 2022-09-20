@@ -1,6 +1,6 @@
 using PSRDADA, Logging
 include("../src/RFIKiller.jl")
-using RFIKiller
+
 const IN_KEY = 0xb0ba
 const OUT_KEY = 0xcafe
 const CHANNELS = 2048
@@ -26,7 +26,7 @@ function main()
     with_read_iter(in_client; type=:data) do rb
         with_write_iter(out_client; type=:data) do wb
             spectra = reshape(reinterpret(DTYPE, next(rb)), (CHANNELS, SAMPLES))
-            kill_rfi!(spectra)
+            RFIKiller.kill_rfi!(spectra)
             next(wb) .= reinterpret(UInt8, spectra)
             n += 1
             @info "Processed $n chunks"
