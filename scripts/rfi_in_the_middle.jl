@@ -25,7 +25,11 @@ function main()
 
     with_read_iter(in_client; type=:data) do rb
         with_write_iter(out_client; type=:data) do wb
-            for raw_spectra in rb
+            while true
+                raw_spectra = next(rb)
+                if isnothing(raw_spectra)
+                    break
+                end
                 spectra = reshape(reinterpret(DTYPE, raw_spectra), (CHANNELS, SAMPLES))
                 spectra_floats = Float32.(spectra)
                 RFIKiller.kill_rfi!(spectra_floats)
