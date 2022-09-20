@@ -20,9 +20,9 @@ function main()
 
     with_read_iter(in_client; type=:data) do rb
         with_write_iter(out_client; type=:data) do wb
-            let spectra = reshape(reinterpret(DTYPE,next(rb)),(CHANNELS,SAMPLES))
+            spectra = reshape(reinterpret(DTYPE, next(rb)), (CHANNELS, SAMPLES))
             kill_rfi!(spectra)
-            next(wb) .= reinterpret(UInt8,spectra)
+            next(wb) .= reinterpret(UInt8, spectra)
         end
     end
 
