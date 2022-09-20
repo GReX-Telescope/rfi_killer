@@ -7,13 +7,11 @@ function parse_commandline()
 
     @add_arg_table! s begin
         "in_key"
-        help = "Input PSRDADA key"
+        help = "Input PSRDADA key (in hex, sans leading 0x)"
         required = true
-        arg_type = Int
         "out_key"
-        help = "Input PSRDADA key"
+        help = "Input PSRDADA key (in hex, sans leading 0x)"
         required = true
-        arg_type = Int
         "--channels"
         help = "Number of frequency channels"
         arg_type = Int
@@ -31,8 +29,8 @@ function julia_main()::Cint
 
     parsed_args = parse_commandline()
 
-    in_key = parsed_args["in_key"]
-    out_key = parsed_args["out_key"]
+    in_key = parse(UInt16, parsed_args["in_key"]; base=16)
+    out_key = parse(UInt16, parsed_args["in_key"]; base=16)
     channels = parsed_args["channels"]
     samples = parsed_args["samples"]
 
