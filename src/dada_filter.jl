@@ -3,7 +3,7 @@ using PSRDADA, Logging
 const IN_KEY = 0xb0ba
 const OUT_KEY = 0xcafe
 const CHANNELS = 2048
-const SAMPLES = 32768
+const SAMPLES = 65536
 const DTYPE = UInt16
 
 function julia_main()::Cint
