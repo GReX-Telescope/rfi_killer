@@ -1,6 +1,6 @@
 using PSRDADA, Logging
 include("../src/RFIKiller.jl")
-
+using RFIKiller
 const IN_KEY = 0xb0ba
 const OUT_KEY = 0xcafe
 const CHANNELS = 2048
