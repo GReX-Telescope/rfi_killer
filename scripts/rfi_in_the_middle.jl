@@ -25,12 +25,14 @@ function main()
 
     with_read_iter(in_client; type=:data) do rb
         with_write_iter(out_client; type=:data) do wb
-            spectra = reshape(reinterpret(DTYPE, next(rb)), (CHANNELS, SAMPLES))
-            spectra_floats = Float32.(spectra)
-            RFIKiller.kill_rfi!(spectra_floats)
-            next(wb) .= reinterpret(UInt8, vec(spectra_floats))
-            n += 1
-            @info "Processed $n chunks"
+            for raw_spectra in rb
+                spectra = reshape(reinterpret(DTYPE, raw_spectra), (CHANNELS, SAMPLES))
+                spectra_floats = Float32.(spectra)
+                RFIKiller.kill_rfi!(spectra_floats)
+                next(wb) .= reinterpret(UInt8, vec(spectra_floats))
+                n += 1
+                @info "Processed $n chunks"
+            end
         end
     end
 
