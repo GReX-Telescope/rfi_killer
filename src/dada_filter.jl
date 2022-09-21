@@ -34,6 +34,8 @@ function julia_main()::Cint
     channels = parsed_args["channels"]
     samples = parsed_args["samples"]
 
+    @info "Starting RFI processing" in_key out_key channels samples
+
     in_client = client_connect(in_key)
     out_client = client_connect(out_key)
     @info "Connected to DADA buffers"
