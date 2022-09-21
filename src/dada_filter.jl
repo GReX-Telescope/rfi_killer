@@ -30,7 +30,7 @@ function julia_main()::Cint
     parsed_args = parse_commandline()
 
     in_key = parse(UInt16, parsed_args["in_key"]; base=16)
-    out_key = parse(UInt16, parsed_args["in_key"]; base=16)
+    out_key = parse(UInt16, parsed_args["out_key"]; base=16)
     channels = parsed_args["channels"]
     samples = parsed_args["samples"]
 
