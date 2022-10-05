@@ -1,5 +1,3 @@
-import Polynomials
-
 # Data is (channels,samples) as consecutive frequencies as consecutive in memorys
 
 function bandpass!(spectra, mask, tolerance=0.001)
@@ -7,21 +5,20 @@ function bandpass!(spectra, mask, tolerance=0.001)
     not_nans = findall(x -> !isnan(x), bp)
     ms = bp .< (tolerance .* median(@view bp[not_nans]))
     @views spectra[not_nans, :] ./= bp[not_nans]
-    @. mask[ms, :] = false
+    mask[ms, :] .= false
     nothing
 end
 
 function sigmacut!(spectra, mask, ax, σ=3)
     σs = sqrt.(masked_var(spectra, mask, ax))
     not_nans = findall(x -> !isnan(x), σs)
-    σs_good = @view σs[not_nans]
-    μ_σs = mean(σs_good)
-    σ_σs = std(σs_good, mean=μ_σs)
+    μ_σs = mean(σs[not_nans])
+    σ_σs = std(σs[not_nans], mean=μ_σs)
     ms = @. σs > μ_σs + σ * σ_σs
     if ax == 1
-        @. mask[:, ms] = false
+        mask[:, ms] .= false
     else
-        @. mask[ms, :] = false
+        mask[ms, :] .= false
     end
     nothing
 end
@@ -31,20 +28,21 @@ function detrend!(spectra, mask, axis, degree)
 
     ax_mean = masked_mean(spectra, mask, axis)
     not_nans = findall(x -> !isnan(x), ax_mean)
-    ax_mean_good = @view ax_mean[not_nans]
 
     if axis == 1
-        xs = axes(spectra, 2)
+        xs = similar(spectra, eltype(spectra), size(spectra)[2])
+        xs .= range(0, 1, size(spectra)[2])
     else
-        xs = axes(spectra, 1)
+        xs = similar(spectra, eltype(spectra), size(spectra)[1])
+        xs .= range(0, 1, size(spectra)[1])
     end
 
-    f = Polynomials.fit(xs[not_nans], ax_mean_good, degree)
+    f = Polynomial(polysolve(xs[not_nans], ax_mean[not_nans], degree))
 
     if axis == 1
-        @. spectra -= f(xs)'
+        spectra .-= f(xs)
     else
-        @. spectra -= f(xs)
+        spectra .-= f(xs)'
     end
 
     nothing
@@ -53,16 +51,19 @@ end
 function zero_dm_filter!(spectra, mask, σ_limit)
     dmzero = masked_mean(spectra, mask, 2)
     not_nans = findall(x -> !isnan(x), dmzero)
-    dmzero = dmzero .- median(dmzero[not_nans])
-    σ = 1.4826 * mad(dmzero[not_nans])
+    dmzero_good = dmzero[not_nans]
+    good_median = median(dmzero_good)
+    dmzero = dmzero .- good_median
+    σ = median(@. abs(dmzero_good - good_median))
     # Find outliers
     ms = @. abs(dmzero) > σ_limit * σ
     @. mask[ms, :] = false
+    nothing
 end
 
-function kill_rfi!(spectra::AbstractMatrix, mask::AbstractMatrix{Bool})
+function kill_rfi!(spectra, mask)
     # Reset mask
-    mask .= ones(Bool, size(spectra))
+    mask .= true
     # Apply filters
     bandpass!(spectra, mask, 0.001)
     sigmacut!(spectra, mask, 1, 3)

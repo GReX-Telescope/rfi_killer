@@ -1,4 +1,4 @@
-using PSRDADA, Logging, ArgParse
+using PSRDADA, Logging, ArgParse, CUDA
 
 const DTYPE = Float32
 
@@ -53,7 +53,7 @@ function julia_main()::Cint
     n = 0
 
     # Construct mask
-    mask = ones(Bool, channels, samples)
+    mask = CUDA.ones(Bool, channels, samples)
 
     with_read_iter(in_client; type=:data) do rb
         with_write_iter(out_client; type=:data) do wb
@@ -63,8 +63,8 @@ function julia_main()::Cint
                     break
                 end
                 spectra = reshape(reinterpret(DTYPE, raw_spectra), (channels, samples))
-                RFIKiller.kill_rfi!(spectra, mask)
-                next(wb) .= reinterpret(UInt8, vec(spectra))
+                RFIKiller.kill_rfi!(cu(spectra), mask)
+                next(wb) .= reinterpret(UInt8, vec(Array(spectra)))
                 n += 1
                 @info "Processed $n chunks"
             end

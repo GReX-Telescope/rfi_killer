@@ -1,20 +1,27 @@
-using LoopVectorization, StatsBase
+using LoopVectorization, StatsBase, CUDA
 
-# Array Abstraction versions
+# CUDA versions
 
-function masked_mean(tmp::AbstractMatrix{T}, x::AbstractMatrix{T}, mask, axis) where {T<:Number}
-    @. tmp = x * mask
-    mean(tmp, dims=axis)
+function masked_mean(x::CuArray, mask::CuArray, axis)
+    @assert size(x) == size(mask) "The mask and input must have the same size"
+    @assert axis == 1 || axis == 2 "Axis must be either 1 or 2"
+
+    sum(x .* mask, dims=axis) ./ count(mask, dims=axis) |> vec
 end
 
-function masked_var(tmp::AbstractMatrix{T}, x::AbstractMatrix{T}, mask, axis) where {T<:Number}
-    @. tmp = x * mask
-    var(tmp, dims=axis)
+function masked_var(x::CuArray, mask::CuArray, axis)
+    μ = masked_mean(x, mask, axis)
+    if axis == 1
+        Δ = @. abs2(x - μ') * mask
+    else
+        Δ = @. abs2(x - μ) * mask
+    end
+    sum(Δ, dims=axis) ./ (count(mask, dims=axis) .- 1) |> vec
 end
 
 # Looping versions
 
-function masked_mean(x::AbstractMatrix{T}, mask, axis) where {T<:Number}
+function masked_mean(x::AbstractArray{T}, mask, axis) where {T<:Number}
     @assert size(x) == size(mask) "The mask and input must have the same size"
     @assert axis == 1 || axis == 2 "Axis must be either 1 or 2"
 
@@ -43,7 +50,7 @@ function masked_mean(x::AbstractMatrix{T}, mask, axis) where {T<:Number}
     @turbo acc .= acc ./ len
 end
 
-function masked_var(x::AbstractMatrix{T}, mask, axis) where {T<:Number}
+function masked_var(x::AbstractArray{T}, mask, axis) where {T<:Number}
     @assert size(x) == size(mask) "The mask and input must have the same size"
     @assert axis == 1 || axis == 2 "Axis must be either 1 or 2"
 
